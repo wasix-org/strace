@@ -13,6 +13,10 @@
 
 /* Fallbacks for architecture-specific definitions.  */
 
+# ifndef ARCH_SYSCALL_INFO_ONLY
+#  define ARCH_SYSCALL_INFO_ONLY 0
+# endif
+
 # ifndef HAVE_ARCH_GETRVAL2
 #  define HAVE_ARCH_GETRVAL2 0
 # endif

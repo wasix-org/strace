@@ -102,7 +102,7 @@ print_mmap_flags(kernel_ulong_t flags)
 }
 
 static void
-print_mmap(struct tcb *tcp, kernel_ulong_t *u_arg, unsigned long long offset)
+print_mmap(struct tcb *tcp, syscall_ulong_t *u_arg, unsigned long long offset)
 {
 	const kernel_ulong_t addr = u_arg[0];
 	const kernel_ulong_t len = u_arg[1];

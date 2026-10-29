@@ -67,8 +67,8 @@ check_psi_none(const struct_ptrace_syscall_info *info,
 	if (psi_size < expected_none_size ||
 	    info->op != PTRACE_SYSCALL_INFO_NONE ||
 	    !info->arch ||
-	    !info->instruction_pointer ||
-	    !info->stack_pointer) {
+	    (!ARCH_SYSCALL_INFO_ONLY &&
+	     (!info->instruction_pointer || !info->stack_pointer))) {
 		debug_func_msg("%s: ptrace stop #%d: signal stop mismatch",
 			       text, ptrace_stop);
 		return false;
@@ -92,8 +92,8 @@ check_psi_entry(const struct_ptrace_syscall_info *info,
 	if (psi_size < expected_entry_size ||
 	    info->op != PTRACE_SYSCALL_INFO_ENTRY ||
 	    !info->arch ||
-	    !info->instruction_pointer ||
-	    !info->stack_pointer) {
+	    (!ARCH_SYSCALL_INFO_ONLY &&
+	     (!info->instruction_pointer || !info->stack_pointer))) {
 		debug_func_msg("%s: ptrace stop #%d: entry stop mismatch",
 			       text, ptrace_stop);
 		return false;
@@ -104,7 +104,10 @@ check_psi_entry(const struct_ptrace_syscall_info *info,
 			       (uintmax_t) info->entry.nr);
 		return false;
 	}
-	for (unsigned int i = 0; i < ARRAY_SIZE(exp_entry->args); ++i) {
+	const unsigned int nargs = ARCH_SYSCALL_INFO_ONLY
+		? (exp_nr == __NR_gettid ? 0 : 1)
+		: ARRAY_SIZE(exp_entry->args);
+	for (unsigned int i = 0; i < nargs; ++i) {
 		if (info->entry.args[i] != exp_entry->args[i]) {
 			debug_func_msg("%s: ptrace stop #%d: args[%u] mismatch:"
 				       "expected %#jx, got %#jx",
@@ -127,8 +130,8 @@ check_psi_exit(const struct_ptrace_syscall_info *info,
 	if (psi_size < expected_exit_size ||
 	    info->op != PTRACE_SYSCALL_INFO_EXIT ||
 	    !info->arch ||
-	    !info->instruction_pointer ||
-	    !info->stack_pointer ||
+	    (!ARCH_SYSCALL_INFO_ONLY &&
+	     (!info->instruction_pointer || !info->stack_pointer)) ||
 	    info->exit.is_error != exp_exit->is_error ||
 	    info->exit.rval != exp_exit->rval) {
 		debug_func_msg("%s: ptrace stop #%d: exit stop mismatch",

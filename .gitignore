@@ -35,3 +35,4 @@
 Makefile
 Makefile.in
 core
+/maint/wasixv2-syscalls/target

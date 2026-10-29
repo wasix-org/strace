@@ -3191,9 +3191,13 @@ init(int argc, char *argv[])
 
 	debug_msg("ptrace_setoptions = %#x", ptrace_setoptions);
 	test_ptrace_seize();
+	if (ARCH_SYSCALL_INFO_ONLY && inject_set)
+		error_msg_and_die("Register tampering is not supported on WASIX v2");
 	if (inject_set)
 		test_ptrace_set_syscall_info();
 	test_ptrace_get_syscall_info();
+	if (ARCH_SYSCALL_INFO_ONLY && !ptrace_get_syscall_info_supported)
+		error_msg_and_die("WASIX v2 requires PTRACE_GET_SYSCALL_INFO");
 
 	/*
 	 * Is something weird with our stdin and/or stdout -

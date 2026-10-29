@@ -125,3 +125,11 @@ $(srcdir)/CREDITS: $(srcdir)/CREDITS.in $(srcdir)/.mailmap \
 export TAR_OPTIONS = --owner=0 --group=0 --numeric-owner --mode=go-w,go+rX
 
 endif
+
+EXTRA_DIST += tests/wasm32-slots.c
+EXTRA_DIST += maint/wasixv2-syscalls/Cargo.toml \
+	maint/wasixv2-syscalls/Cargo.lock \
+	maint/wasixv2-syscalls/README.md \
+	maint/wasixv2-syscalls/src/main.rs
+
+EXTRA_DIST += maint/check-wasixv2.py

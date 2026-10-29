@@ -557,7 +557,7 @@ tamper_with_syscall_exiting(struct tcb *tcp)
 		error_msg("Failed to tamper with process %d: unexpectedly got"
 			  " %serror (return value %#" PRI_klx ", error %lu)",
 			  tcp->pid, syscall_tampered_nofail(tcp) ? "" : "no ",
-			  tcp->u_rval, tcp->u_error);
+			  (kernel_ulong_t) tcp->u_rval, tcp->u_error);
 
 		return 1;
 	}
@@ -878,7 +878,7 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 
 	if (raw(tcp)) {
 		if (tcp->u_error) {
-			print_err_ret(tcp->u_rval, tcp->u_error);
+			print_err_ret((kernel_ulong_t) tcp->u_rval, tcp->u_error);
 		} else {
 			tprints_sysret_next("retval");
 			PRINT_VAL_X(tcp->u_rval);
@@ -939,7 +939,7 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 			print_erestart("ERESTART_RESTARTBLOCK", "Interrupted by signal");
 			break;
 		default:
-			print_err_ret(tcp->u_rval, tcp->u_error);
+			print_err_ret((kernel_ulong_t) tcp->u_rval, tcp->u_error);
 			break;
 		}
 	} else {
@@ -949,6 +949,11 @@ syscall_exiting_trace(struct tcb *tcp, struct timespec *ts, int res)
 		else {
 			switch (sys_res & RVAL_MASK) {
 			case RVAL_HEX:
+#ifdef WASM32
+				/* Decoded hexadecimal results are ILP32 addresses. */
+				PRINT_VAL_X((kernel_ulong_t) tcp->u_rval);
+				break;
+#endif
 #if ANY_WORDSIZE_LESS_THAN_KERNEL_LONG
 				if (current_klongsize < sizeof(tcp->u_rval)) {
 					PRINT_VAL_X((unsigned int) tcp->u_rval);
@@ -1278,8 +1283,13 @@ get_regs(struct tcb *const tcp)
 
 #else /* !ptrace_getregset_or_getregs */
 
-# warning get_regs is not implemented for this architecture yet
+# if ARCH_SYSCALL_INFO_ONLY
+	errno = EIO;
+	return -1;
+# else
+#  warning get_regs is not implemented for this architecture yet
 	return 0;
+# endif
 
 #endif /* !ptrace_getregset_or_getregs */
 }
@@ -1328,7 +1338,8 @@ strace_get_syscall_info(struct tcb *tcp)
 	}
 
 	if (entering(tcp)) {
-		if (ptrace_sci.op == PTRACE_SYSCALL_INFO_EXIT) {
+		if (ptrace_sci.op == PTRACE_SYSCALL_INFO_EXIT &&
+		    !ARCH_SYSCALL_INFO_ONLY) {
 			error_msg("pid %d: entering"
 				  ", ptrace_syscall_info.op == %u",
 				  tcp->pid, ptrace_sci.op);
@@ -1369,7 +1380,11 @@ get_instruction_pointer(struct tcb *tcp, kernel_ulong_t *ip)
 		return false;
 	return true;
 #else
-# error Neither ARCH_PC_REG nor ARCH_PC_PEEK_ADDR is defined
+# if ARCH_SYSCALL_INFO_ONLY
+	return false;
+# else
+#  error Neither ARCH_PC_REG nor ARCH_PC_PEEK_ADDR is defined
+# endif
 #endif
 }
 
@@ -1415,13 +1430,14 @@ get_syscall_regs(struct tcb *tcp)
 			return 0;
 
 		/*
-		 * PTRACE_GET_SYSCALL_INFO succeeded but didn't help,
-		 * falling back to get_regs().
-		 *
-		 * This can happen when get_syscall_regs() is called
-		 * from startup_tcb() via get_scno().
+		 * startup_tcb() may ask at an event stop (INFO_NONE), or
+		 * an attached task may first stop at syscall exit.  An
+		 * info-only personality defers decoding until a real entry.
+		 * Other architectures retain their register fallback.
 		 */
 		debug_func_msg("ptrace_sci.op = %d", ptrace_sci.op);
+		if (ARCH_SYSCALL_INFO_ONLY)
+			return 0;
 	}
 
 	return get_regs(tcp);
@@ -1452,6 +1468,9 @@ get_scno(struct tcb *tcp)
 
 	if (get_syscall_regs(tcp) < 0)
 		return -1;
+
+	if (ARCH_SYSCALL_INFO_ONLY && !ptrace_syscall_info_is_entry())
+		return 0;
 
 	if (ptrace_syscall_info_is_entry()) {
 		/* Apply arch-specific workarounds.  */
@@ -1525,7 +1544,7 @@ get_syscall_args(struct tcb *tcp)
 	return arch_get_syscall_args(tcp);
 }
 
-#ifdef ptrace_getregset_or_getregs
+#if defined ptrace_getregset_or_getregs || ARCH_SYSCALL_INFO_ONLY
 # define get_syscall_result_regs get_syscall_regs
 #else
 static int get_syscall_result_regs(struct tcb *);
@@ -1675,7 +1694,7 @@ set_success(struct tcb *tcp, kernel_long_t new_rval)
 #include "check_scno.c"
 #include "set_scno.c"
 #include "get_syscall_args.c"
-#ifndef ptrace_getregset_or_getregs
+#if !defined ptrace_getregset_or_getregs && !ARCH_SYSCALL_INFO_ONLY
 # include "get_syscall_result.c"
 #endif
 #include "get_error.c"

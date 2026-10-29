@@ -204,7 +204,7 @@ pathtrace_select_set(const char *path, struct path_set *set)
 }
 
 static bool
-match_xselect_args(struct tcb *tcp, const kernel_ulong_t *args,
+match_xselect_args(struct tcb *tcp, const syscall_ulong_t *args,
 		   struct path_set *set, struct number_set *fdset)
 {
 	/* Kernel truncates arg[0] to int, we do the same. */

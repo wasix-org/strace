@@ -27,7 +27,7 @@ SYS_FUNC(close)
 }
 
 static int
-decode_select(struct tcb *const tcp, const kernel_ulong_t *const args,
+decode_select(struct tcb *const tcp, const syscall_ulong_t *const args,
 	      const print_obj_by_addr_fn print_tv_ts,
 	      const sprint_obj_by_addr_fn sprint_tv_ts)
 {

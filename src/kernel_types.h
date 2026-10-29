@@ -33,6 +33,15 @@ typedef unsigned long kernel_ulong_t;
 
 # endif
 
+/* Syscall scalar slots need not have the width of an in-memory long. */
+# ifdef WASM32
+typedef long long syscall_long_t;
+typedef unsigned long long syscall_ulong_t;
+# else
+typedef kernel_long_t syscall_long_t;
+typedef kernel_ulong_t syscall_ulong_t;
+# endif
+
 # ifndef HAVE___KERNEL_LONG_T
 typedef kernel_long_t __kernel_long_t;
 # endif

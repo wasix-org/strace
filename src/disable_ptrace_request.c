@@ -41,6 +41,10 @@ init(int argc, char **argv)
 # define DISABLE_PTRACE_ERRNO EIO
 #endif
 
+#ifndef DISABLE_PTRACE_ACTION
+# define DISABLE_PTRACE_ACTION (SECCOMP_RET_ERRNO | DISABLE_PTRACE_ERRNO)
+#endif
+
 #if defined PR_SET_NO_NEW_PRIVS \
  && defined PR_SET_SECCOMP \
  && defined BPF_JUMP \
@@ -129,7 +133,7 @@ main(int argc, char **argv)
 		BPF_STMT(BPF_JMP | BPF_JA, 0),
 # endif
 		/* reject */
-		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | DISABLE_PTRACE_ERRNO),
+		BPF_STMT(BPF_RET | BPF_K, DISABLE_PTRACE_ACTION),
 		/* allow */
 		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW)
 	};

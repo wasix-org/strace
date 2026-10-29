@@ -22,6 +22,7 @@
  * fs/read_write.c::SYSCALL_DEFINE3(lseek, unsigned, fd, off_t, offset, unsigned, origin)
  * In kernel, off_t is always the same as (kernel's) long
  * (see include/uapi/asm-generic/posix_types.h).
+ * WASIX v2 carries an i64 offset in its typed lseek import on ILP32.
  * Use test/x32_lseek.c to test lseek decoding.
  */
 SYS_FUNC(lseek)
@@ -30,9 +31,9 @@ SYS_FUNC(lseek)
 	tprints_arg_name("fd");
 	printfd(tcp, tcp->u_arg[0]);
 
-	kernel_long_t offset;
+	syscall_long_t offset;
 
-#ifndef current_klongsize
+#if !defined current_klongsize && !defined WASM32
 	if (current_klongsize < sizeof(kernel_long_t)) {
 		offset = (int) tcp->u_arg[1];
 	} else

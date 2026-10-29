@@ -1,0 +1,8 @@
+[package]
+name = "strace-wasixv2-syscalls"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+wasixv2-codegen = { git = "https://github.com/wasix-org/wasixv2-abi", rev = "07cd32edb66b0cf9f97e276b85e0398c899daa5c" }

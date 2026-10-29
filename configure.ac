@@ -168,6 +168,11 @@ powerpc*)
 		esac
 	fi
 	;;
+wasm32*)
+	arch=wasm32
+	karch=riscv
+	AC_DEFINE([WASM32], 1, [Define for the WASIX v2 wasm32 architecture.])
+	;;
 riscv64*)
 	arch=riscv64
 	karch=riscv

@@ -1061,6 +1061,16 @@ EXTRA_DIST =				\
 	linux/x86_64/syscallent1.h	\
 	linux/x86_64/syscallent2.h	\
 	linux/x86_64/userent.h		\
+	linux/wasm32/arch_defs_.h	\
+	linux/wasm32/arch_regs.c	\
+	linux/wasm32/get_scno.c	\
+	linux/wasm32/get_syscall_args.c	\
+	linux/wasm32/get_error.c	\
+	linux/wasm32/set_error.c	\
+	linux/wasm32/set_scno.c	\
+	linux/wasm32/ioctls_arch0.h	\
+	linux/wasm32/ioctls_inc0.h	\
+	linux/wasm32/syscallent.h	\
 	linux/xtensa/arch_defs_.h		\
 	linux/xtensa/arch_regs.c	\
 	linux/xtensa/get_error.c	\

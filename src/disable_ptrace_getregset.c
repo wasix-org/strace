@@ -18,5 +18,10 @@
 #  define DISABLE_PTRACE_REQUEST PTRACE_GETREGSET
 # endif
 #endif
+#if ARCH_SYSCALL_INFO_ONLY
+# define DISABLE_PTRACE_REQUEST PTRACE_GETREGSET
+/* A successful test must prove that no register request was attempted. */
+# define DISABLE_PTRACE_ACTION SECCOMP_RET_KILL_PROCESS
+#endif
 #define DEFAULT_PROGRAM_INVOCATION_NAME	"disable_ptrace_getregset"
 #include "disable_ptrace_request.c"

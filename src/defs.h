@@ -273,8 +273,8 @@ struct tcb {
 	unsigned long u_error;	/* Error code */
 	kernel_ulong_t scno;	/* System call number */
 	kernel_ulong_t true_scno;	/* Same, but without subcall decoding and shuffling */
-	kernel_ulong_t u_arg[MAX_ARGS];	/* System call arguments */
-	kernel_long_t u_rval;	/* Return value */
+	syscall_ulong_t u_arg[MAX_ARGS];	/* System call arguments */
+	syscall_long_t u_rval;	/* Return value */
 	int sys_func_rval;	/* Syscall entry parser's return value */
 	int curcol;		/* Output column for this process */
 	FILE *outf;		/* Output file for this process */
